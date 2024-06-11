@@ -1,0 +1,1215 @@
+#include <iostream>
+#include <string>
+#include <cmath>
+#include <fstream>
+
+using namespace std;
+
+int nextId = 1000;
+int ecoR , vipR, ehangR, quadcopterR, ehangbR, skycraneR , stratofortressR, pointsR , distR;
+int overWeightR , needWorkerR , insuranceR ,needStopR , hurryR;
+
+string order;
+
+string vehicleTag, vehicleColor, serviceType, bankId, firstName, lastName, phone , tmplocation;
+int  averageSpeed, minLength, maxLength, minTime,
+maxTime, minIncome, maxIncome , id , driverbalance , passengerbalance, newBalance, balance , targetId;
+
+string temptime , temp , tmptype, locationDest , locationStart ,newdest ;
+int tempid, tmpstartX , tmpstartY , tmpdestX , tmpdestY,travelID , newdestX , newdestY , tmphour , tmpminute ;
+int overWeight , Weight , needWorker , insurance , shipmentValue = 0 , needStop
+, stopMins = 0 , locationC , locationColon, addvalue = 0, trans_num = 0;
+float settlementR;
+
+class transaction{
+    friend class TravelRequest;
+    friend class Driver;
+    private:
+        int driverid;
+        int passengerid;
+        float amount;
+        int hour, min;
+        string bankid;
+
+    public:
+
+    void set(int d, int p, int amn, string b){
+        this->driverid = d;
+        this->passengerid = p;
+        this->amount = amn;
+        this->bankid = b; 
+    }
+
+    void set_time(int h, int m){
+        this->min = m;
+        this->hour = h;
+    }
+
+    int getId_d(){
+        return driverid;
+    }
+
+    int getAmount(){
+        return amount;
+    }
+
+    int getMin(){
+        return min;
+    }
+
+    int getHour(){
+        return hour;
+    }
+
+    int getId_p(){
+        return passengerid;
+    }
+
+    string getBank(){
+        return bankId;
+    }
+
+    void getinfo(){
+        cout << bankId << " " << amount << " " << driverid << " " << passengerid << " " << hour << ":" << min << endl;
+    }
+
+
+}transactions[1000];
+
+int lowestPriority , maxIndex, successId;
+
+class Person {
+protected:
+    int id;
+    string firstName, lastName, phone;
+    int balance;
+
+public:
+    void initialize(const string firstName, const string lastName, const string phone, int balance) {
+        id = nextId++;
+        this->firstName = firstName;
+        this->lastName = lastName;
+        this->phone = phone;
+        this->balance = balance;
+    }
+
+    void updateBalance(int newBalance) {
+        balance += newBalance;
+    }
+
+    void displayInfo() {
+        cout << "ID: " << id << ", Name: " << firstName << " " << lastName
+             << ", Phone: " << phone << ", Balance: " << balance ;
+    }
+    friend class TravelRequest;
+};
+
+int pass_num = 0 , driver_num = 0;
+
+class Driver : public Person {
+    friend class TravelRequest;
+    friend class transaction;
+    
+public:
+    void initializeDriver(const string firstName, const string lastName, const string phone,
+                           const string vehicleTag, const string vehicleColor, int balance,
+                           const string serviceType, const int clocationX, const int clocationY,
+                           const string bankId, const int averageSpeed, const int minLength, const int maxLength,
+                           const int minTime, const int maxTime, const int minIncome, const int maxIncome) {
+        initialize(firstName, lastName, phone, balance);
+
+        this->vehicleTag = vehicleTag;
+        this->vehicleColor = vehicleColor;
+        this->serviceType = serviceType;
+        this->currentLocationX = clocationX;
+        this->currentLocationY = clocationY;
+        this->bankId = bankId;
+        this->averageSpeed = averageSpeed;
+        this->minLength = minLength;
+        this->maxLength = maxLength;
+        this->minTime = minTime;
+        this->maxTime = maxTime;
+        this->minIncome = minIncome;
+        this->maxIncome = maxIncome;
+    }
+
+    void displayDriverInfo(){
+        displayInfo();
+        cout << ", Vehicle Tag: " << vehicleTag << ", Vehicle Color: " << vehicleColor
+             << ", Service Type: " << serviceType << ", Current Location: (" << currentLocationX << ", "
+             << currentLocationY << "), Bank ID: " << bankId << ", Average Speed: " << averageSpeed
+             << ", Min Length: " << minLength << ", Max Length: " << maxLength << ", Min Time: " << minTime
+             << ", Max Time: " << maxTime << ", Min Income: " << minIncome << ", Max Income: " << maxIncome << endl ;
+    }
+    int getId(){
+        return id;
+    }
+    void settlement(){
+        this->updateBalance((1 - settlementR) * income);
+        cout << (1 - settlementR) * income << " is payed to " << firstName << " " << lastName << endl;
+        income = 0;
+    }
+    string getfirst(){
+        return firstName;
+    }
+    string getlast(){
+        return lastName;
+    }
+    string getphone(){
+        return phone;
+    }
+    string gettag(){
+        return vehicleTag;
+    }
+    string getcolor(){
+        return vehicleColor;
+    }
+    int getdbalance(){
+        return balance;
+    }
+    string gettype(){
+        return serviceType;
+    }
+    int getlocx(){
+        return currentLocationX;
+    }
+    int getlocy(){
+        return currentLocationY;
+    }
+    string getbank(){
+        return bankId;
+    }
+    int getspeed(){
+        return averageSpeed;
+    }
+    int getminlen(){
+        return minLength;
+    }
+    int getmaxlen(){
+        return maxLength;
+    }
+    int getmint(){
+        return minTime;
+    }
+    int getmaxt(){
+        return maxTime;
+    }
+    int getmini(){
+        return minIncome;
+    }
+    int getmaxi(){
+        return maxIncome;
+    }
+
+private:
+    string vehicleTag, vehicleColor, serviceType, bankId;
+    int currentLocationX, currentLocationY, averageSpeed, minLength, maxLength, minTime, maxTime, minIncome, maxIncome , point = 0;
+    int income = 0;
+
+    
+}drivers[1000];
+
+int search_d(int id){
+
+    for (int i = 0; i < 10; i++)
+    {
+        if(id == drivers[i].getId()){
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+class Passenger : public Person {
+    friend class TravelRequest;
+public:
+    void initializePassenger(const string firstName, const string lastName, const string phone, int balance) {
+        initialize(firstName, lastName, phone, balance);
+    }
+
+    void displayPassengerInfo()  {
+        displayInfo();
+    }
+    void updateBalanceSpecial(int newBalance) {
+        updateBalance(newBalance);
+    }
+    int getId(){
+        return id;
+    }
+    string getfirst(){
+        return firstName;
+    }
+    string getlast(){
+        return lastName;
+    }
+    string getphone(){
+        return phone;
+    }
+    int getbalance(){
+        return balance;
+    }
+}passenger[1000];
+
+
+int search(int id){
+    
+    for (int i = 0; i < 999; i++)
+    {
+        if( passenger[i].getId() == id ){
+            return i;
+        }
+    }
+    return -1;
+}
+
+int baseRate , busyHoursRate;
+int req_num = 0, nextTravelId = 1000;
+
+class TravelRequest{
+
+    private:
+    int startX , startY, destX , destY , id , travelid, hour , minute , overWeight = 0, insurance , worker, stop , fullWeight = 50 , addedvalue;
+    double busyHoursRate ;
+    int successId = 0 ;
+
+    string type;
+    // optionaro be initialize vorodi bede
+    public:
+    void InitializeTravel(int H, int M , int inputId, int inputStartx , int inputStarty, int inputdestX , 
+                          int inputDestY,string inputType,int fWeight, int overrr ,int val, int insss , int work , int timeS){
+        travelid = nextTravelId++;
+        this->hour = H;
+        this->minute = M;
+        this->id = inputId;
+        this->startX = inputStartx;
+        this->startY = inputStarty;
+        this->destX = inputdestX;
+        this->destY = inputDestY;
+        this->type = inputType;
+        this->overWeight = overrr;
+        this->insurance = insss;
+        this->worker= work;
+        this->stop = timeS;
+        this->fullWeight = fWeight;
+        this->addedvalue = val;
+
+    }
+
+    int calculateDistance(int a , int b , int c , int d){
+        return sqrt(pow((c - a), 2) + pow((d - b), 2));
+    }
+
+    void displayReqinfo() {
+        cout << "execution time: " << hour << ":" <<minute << " Id: " << id << " start location: " << startX << "," << startY << " destination location: "
+        <<destX << "," << destY << " service type: "<< type << " travel id is: " << travelid << endl ;
+    }
+    int getId(){
+        return travelid;
+    }
+    int gethour(){
+        return hour;
+    }
+    int getminute(){
+        return minute;
+    }
+    int getpassengerid(){
+        return id;
+    }
+    int getstartx(){
+        return startX;
+    }
+    int getstarty(){
+        return startY;
+    }
+    int getdestx(){
+        return destX;
+    }
+    int getdesty(){
+        return destY;
+    }
+    string gettype(){
+        return this->type;
+    }
+    // void updateDestination(int newX, int newY) {
+    //     this->startX = destX;
+    //     this->startY = destY;
+    //     this->destX = newX;
+    //     this->destY = newY;
+    //     cout << startX << " " << startY << " " << destX << " " << destY;   
+    // }
+    bool checkTime(int h , int m){
+        if (h == this->hour && m == this->minute)
+        {
+            return true;
+        }
+        return false;
+    }
+    bool accepted(int id , int p , int d){
+        int flag;
+
+        if (drivers[id].minLength <= d <= drivers[id].maxLength 
+         && drivers[id].minIncome <= p <= drivers[id].maxIncome &&
+         drivers[id].minTime <= d / drivers[id].averageSpeed <= drivers[id].maxTime )
+        {
+            flag = rand();
+            if(flag % 100 <= 70)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    void HandleReq(){
+        int Priority[driver_num] ;
+        float distance = this->calculateDistance(this->startX , this->startY , this->destX , this->destY);
+        float price = 0;
+        //passenger
+
+        if (this->type == "eco")
+        {
+            price = distance * baseRate * ecoR;
+            price += worker * needWorkerR;
+            price += (fullWeight -50) * overWeightR * overWeight;
+            price += addedvalue;
+            
+            targetId = search(this->id);
+
+            if(price > passenger[targetId].balance){
+                cout << "not enough balance!!" << endl;
+            }
+
+            else
+            {
+                for (int i = 0; i < driver_num; i++)
+                {   
+                    Priority[i] = (drivers[i].point) * pointsR - this->calculateDistance(this->startX , this->startY , 
+                    drivers[i].currentLocationX , drivers[i].currentLocationY) * distR;
+                }
+
+            lowestPriority = -10000; 
+            //barash ersal nemishe agar az maxindex kamtar bood
+            maxIndex = -1;
+
+            for (int j = 0; j < driver_num; j++)
+            {
+                for (int i = 0; i < driver_num; i++)
+                {
+                    if (Priority[i] > lowestPriority && drivers[i].serviceType == this->type)
+                    {
+                        lowestPriority = Priority[i];
+                        maxIndex = i;
+                    }
+                }
+
+                if (maxIndex == -1){
+                    cout << "no driver was found for you!" << endl;
+                }
+
+                else{
+                    if(this->accepted(maxIndex ,price , distance) == true)
+                    {
+                        
+                        this->successId = 1;
+                        passenger[targetId].updateBalance(-price);
+
+                        drivers[maxIndex].income += price;
+
+                        cout << drivers[maxIndex].firstName << " "<< drivers[maxIndex].lastName << " accepted this request" << endl;
+                        cout << "driver will be there in "  << this->calculateDistance(this->startX , this->startY , 
+                        drivers[maxIndex].currentLocationX , drivers[maxIndex].currentLocationY) / drivers[maxIndex].averageSpeed << " minutes!!" << endl;
+                        cout << "you will be at your destination in " << distance / drivers[maxIndex].averageSpeed << " minutes!!" << endl;
+                        transactions[trans_num].set(drivers[maxIndex].id, passenger[targetId].id, ((1 - settlementR) * price), drivers[maxIndex].bankId);
+                        break;
+                    }
+
+                    Priority[maxIndex] = -10000;
+                    lowestPriority = -10000;
+                } 
+            }
+                if (successId == 0)
+                {
+                        cout << "no driver accepted your request!" << endl; 
+                }
+            }    
+        }
+
+
+        else if (this->type == "vip")
+        {
+            price = distance * baseRate * vipR;
+            price += worker * needWorkerR;
+            price += (fullWeight -50) * overWeightR * overWeight;
+            price += addedvalue;
+            
+            targetId = search(this->id);
+
+            if(price > passenger[targetId].balance){
+                cout << "not enough balance!!" << endl;
+            }
+
+            else
+            {
+                for (int i = 0; i < driver_num; i++)
+                {   
+                    Priority[i] = (drivers[i].point) * pointsR - this->calculateDistance(this->startX , this->startY , 
+                    drivers[i].currentLocationX , drivers[i].currentLocationY) * distR;
+                }
+
+            lowestPriority = -10000; 
+            //barash ersal nemishe agar az maxindex kamtar bood
+            maxIndex = -1;
+
+            for (int j = 0; j < driver_num; j++)
+            {
+                for (int i = 0; i < driver_num; i++)
+                {
+                    if (Priority[i] > lowestPriority && drivers[i].serviceType == this->type)
+                    {
+                        lowestPriority = Priority[i];
+                        maxIndex = i;
+                    }
+                }
+
+                if (maxIndex == -1){
+                    cout << "no driver was found for you!" << endl;
+                }
+
+                else{
+                    if(this->accepted(maxIndex ,price , distance) == true)
+                    {
+                        
+                        this->successId = 1;
+                        //cout << successId;
+                        passenger[targetId].updateBalance(-price);
+
+                        drivers[maxIndex].income += price;
+
+                        cout << drivers[maxIndex].firstName << " "<< drivers[maxIndex].lastName << " accepted this request" << endl;
+                        cout << "driver will be there in "  << this->calculateDistance(this->startX , this->startY , 
+                        drivers[maxIndex].currentLocationX , drivers[maxIndex].currentLocationY) / drivers[maxIndex].averageSpeed << " minutes!!" << endl;
+                        cout << "you will be at your destination in " << distance / drivers[maxIndex].averageSpeed << " minutes!!" << endl;
+                        transactions[trans_num].set(drivers[maxIndex].id, passenger[targetId].id, ((1 - settlementR) * price), drivers[maxIndex].bankId);
+                        break;
+                    }
+
+                    Priority[maxIndex] = -10000;
+                    lowestPriority = -10000;
+                } 
+            }
+                if (successId == 0)
+                {
+                        cout << "no driver accepted your request!" << endl; 
+                }
+            }
+                   
+        }
+
+
+        else if (this->type == "ehang")
+        {
+            price = distance * baseRate * ehangR;
+            price += worker * needWorkerR;
+            price += (fullWeight -50) * overWeightR * overWeight;
+            price += addedvalue;
+            
+            targetId = search(this->id);
+
+            if(price > passenger[targetId].balance){
+                cout << "not enough balance!!" << endl;
+            }
+
+            else
+            {
+                for (int i = 0; i < driver_num; i++)
+                {   
+                    Priority[i] = (drivers[i].point) * pointsR - this->calculateDistance(this->startX , this->startY , 
+                    drivers[i].currentLocationX , drivers[i].currentLocationY) * distR;
+                }
+
+            lowestPriority = -10000; 
+            //barash ersal nemishe agar az maxindex kamtar bood
+            maxIndex = -1;
+
+            for (int j = 0; j < driver_num; j++)
+            {
+                for (int i = 0; i < driver_num; i++)
+                {
+                    if (Priority[i] > lowestPriority && drivers[i].serviceType == this->type)
+                    {
+                        lowestPriority = Priority[i];
+                        maxIndex = i;
+                    }
+                }
+
+                if (maxIndex == -1){
+                    cout << "no driver was found for you!" << endl;
+                }
+
+                else{
+                    if(this->accepted(maxIndex ,price , distance) == true)
+                    {
+                        
+                        this->successId = 1;
+                        //cout << successId;
+                        passenger[targetId].updateBalance(-price);
+
+                        drivers[maxIndex].income += price;
+
+                        cout << drivers[maxIndex].firstName << " "<< drivers[maxIndex].lastName << " accepted this request" << endl;
+                        cout << "driver will be there in "  << this->calculateDistance(this->startX , this->startY , 
+                        drivers[maxIndex].currentLocationX , drivers[maxIndex].currentLocationY) / drivers[maxIndex].averageSpeed << " minutes!!" << endl;
+                        cout << "you will be at your destination in " << distance / drivers[maxIndex].averageSpeed << " minutes!!" << endl;
+                        transactions[trans_num].set(drivers[maxIndex].id, passenger[targetId].id, ((1 - settlementR) * price), drivers[maxIndex].bankId);
+                        break;
+                    }
+
+                    Priority[maxIndex] = -10000;
+                    lowestPriority = -10000;
+                } 
+            }
+                if (successId == 0)
+                {
+                        cout << "no driver accepted your request!" << endl; 
+                }
+            }   
+        }
+
+        //package 
+        else if (this->type == "quadcopter")
+        {
+            price = distance * baseRate * quadcopterR;
+            price += worker * needWorkerR;
+            price += (fullWeight -50) * overWeightR * overWeight;
+            price += addedvalue;
+            
+            targetId = search(this->id);
+
+            if(price > passenger[targetId].balance){
+                cout << "not enough balance!!" << endl;
+            }
+
+            else
+            {
+                for (int i = 0; i < driver_num; i++)
+                {   
+                    Priority[i] = (drivers[i].point) * pointsR - this->calculateDistance(this->startX , this->startY , 
+                    drivers[i].currentLocationX , drivers[i].currentLocationY) * distR;
+                }
+
+            lowestPriority = -10000; 
+            //barash ersal nemishe agar az maxindex kamtar bood
+            maxIndex = -1;
+
+            for (int j = 0; j < driver_num; j++)
+            {
+                for (int i = 0; i < driver_num; i++)
+                {
+                    if (Priority[i] > lowestPriority && drivers[i].serviceType == this->type)
+                    {
+                        lowestPriority = Priority[i];
+                        maxIndex = i;
+                    }
+                }
+
+                if (maxIndex == -1){
+                    cout << "no driver was found for you!" << endl;
+                }
+
+                else{
+                    if(this->accepted(maxIndex ,price , distance) == true)
+                    {
+                        
+                        this->successId = 1;
+                        //cout << successId;
+                        passenger[targetId].updateBalance(-price);
+
+                        drivers[maxIndex].income += price;
+
+                        cout << drivers[maxIndex].firstName << " "<< drivers[maxIndex].lastName << " accepted this request" << endl;
+                        cout << "driver will be there in "  << this->calculateDistance(this->startX , this->startY , 
+                        drivers[maxIndex].currentLocationX , drivers[maxIndex].currentLocationY) / drivers[maxIndex].averageSpeed << " minutes!!" << endl;
+                        cout << "you will be at your destination in " << distance / drivers[maxIndex].averageSpeed << " minutes!!" << endl;
+                        transactions[trans_num].set(drivers[maxIndex].id, passenger[targetId].id, ((1 - settlementR) * price), drivers[maxIndex].bankId);
+                        break;
+                    }
+
+                    Priority[maxIndex] = -10000;
+                    lowestPriority = -10000;
+                } 
+            }
+                if (successId == 0)
+                {
+                        cout << "no driver accepted your request!" << endl; 
+                }
+            }
+        }
+
+
+        else if (this->type == "ehangb")
+        {
+            price = distance * baseRate * ehangbR;
+            price += worker * needWorkerR;
+            price += (fullWeight -50) * overWeightR * overWeight;
+            price += addedvalue;
+            
+            targetId = search(this->id);
+
+            if(price > passenger[targetId].balance){
+                cout << "not enough balance!!" << endl;
+            }
+
+            else
+            {
+                for (int i = 0; i < driver_num; i++)
+                {   
+                    Priority[i] = (drivers[i].point) * pointsR - this->calculateDistance(this->startX , this->startY , 
+                    drivers[i].currentLocationX , drivers[i].currentLocationY) * distR;
+                }
+
+            lowestPriority = -10000; 
+            //barash ersal nemishe agar az maxindex kamtar bood
+            maxIndex = -1;
+
+            for (int j = 0; j < driver_num; j++)
+            {
+                for (int i = 0; i < driver_num; i++)
+                {
+                    if (Priority[i] > lowestPriority && drivers[i].serviceType == this->type)
+                    {
+                        lowestPriority = Priority[i];
+                        maxIndex = i;
+                    }
+                }
+
+                if (maxIndex == -1){
+                    cout << "no driver was found for you!" << endl;
+                }
+
+                else{
+                    if(this->accepted(maxIndex ,price , distance) == true)
+                    {
+                        
+                        this->successId = 1;
+                        //cout << successId;
+                        passenger[targetId].updateBalance(-price);
+
+                        drivers[maxIndex].income += price;
+
+                        cout << drivers[maxIndex].firstName << " "<< drivers[maxIndex].lastName << " accepted this request" << endl;
+                        cout << "driver will be there in "  << this->calculateDistance(this->startX , this->startY , 
+                        drivers[maxIndex].currentLocationX , drivers[maxIndex].currentLocationY) / drivers[maxIndex].averageSpeed << " minutes!!" << endl;
+                        cout << "you will be at your destination in " << distance / drivers[maxIndex].averageSpeed << " minutes!!" << endl;
+                        transactions[trans_num].set(drivers[maxIndex].id, passenger[targetId].id, ((1 - settlementR) * price), drivers[maxIndex].bankId);
+                        break;
+                    }
+
+                    Priority[maxIndex] = -10000;
+                    lowestPriority = -10000;
+                } 
+            }
+                if (successId == 0)
+                {
+                        cout << "no driver accepted your request!" << endl; 
+                }
+            }    
+        }
+
+
+        else if (this->type == "skycrane")
+        {
+            price = distance * baseRate * skycraneR;
+            price += worker * needWorkerR;
+            price += (fullWeight -50) * overWeightR * overWeight;
+            price += addedvalue;
+            
+            targetId = search(this->id);
+
+            if(price > passenger[targetId].balance){
+                cout << "not enough balance!!" << endl;
+            }
+
+            else
+            {
+                for (int i = 0; i < driver_num; i++)
+                {   
+                    Priority[i] = (drivers[i].point) * pointsR - this->calculateDistance(this->startX , this->startY , 
+                    drivers[i].currentLocationX , drivers[i].currentLocationY) * distR;
+                }
+
+            lowestPriority = -10000; 
+            //barash ersal nemishe agar az maxindex kamtar bood
+            maxIndex = -1;
+
+            for (int j = 0; j < driver_num; j++)
+            {
+                for (int i = 0; i < driver_num; i++)
+                {
+                    if (Priority[i] > lowestPriority && drivers[i].serviceType == this->type)
+                    {
+                        lowestPriority = Priority[i];
+                        maxIndex = i;
+                    }
+                }
+
+                if (maxIndex == -1){
+                    cout << "no driver was found for you!" << endl;
+                }
+
+                else{
+                    if(this->accepted(maxIndex ,price , distance) == true)
+                    {
+                        
+                        this->successId = 1;
+                        //cout << successId;
+                        passenger[targetId].updateBalance(-price);
+
+                        drivers[maxIndex].income += price;
+
+                        cout << drivers[maxIndex].firstName << " "<< drivers[maxIndex].lastName << " accepted this request" << endl;
+                        cout << "driver will be there in "  << this->calculateDistance(this->startX , this->startY , 
+                        drivers[maxIndex].currentLocationX , drivers[maxIndex].currentLocationY) / drivers[maxIndex].averageSpeed << " minutes!!" << endl;
+                        cout << "you will be at your destination in " << distance / drivers[maxIndex].averageSpeed << " minutes!!" << endl;
+                        transactions[trans_num].set(drivers[maxIndex].id, passenger[targetId].id, ((1 - settlementR) * price), drivers[maxIndex].bankId);
+                        break;
+                    }
+
+                    Priority[maxIndex] = -10000;
+                    lowestPriority = -10000;
+                } 
+            }
+                if (successId == 0)
+                {
+                        cout << "no driver accepted your request!" << endl; 
+                }
+            }
+        }
+
+        else if (this->type == "stratofortress")
+        {
+            price = distance * baseRate * stratofortressR;
+            price += worker * needWorkerR;
+            price += (fullWeight -50) * overWeightR * overWeight;
+            price += addedvalue;
+            
+            targetId = search(this->id);
+
+            if(price > passenger[targetId].balance){
+                cout << "not enough balance!!" << endl;
+            }
+
+            else
+            {
+                for (int i = 0; i < driver_num; i++)
+                {   
+                    Priority[i] = (drivers[i].point) * pointsR - this->calculateDistance(this->startX , this->startY , 
+                    drivers[i].currentLocationX , drivers[i].currentLocationY) * distR;
+                }
+
+            lowestPriority = -10000; 
+            //barash ersal nemishe agar az maxindex kamtar bood
+            maxIndex = -1;
+
+            for (int j = 0; j < driver_num; j++)
+            {
+                for (int i = 0; i < driver_num; i++)
+                {
+                    if (Priority[i] > lowestPriority && drivers[i].serviceType == this->type)
+                    {
+                        lowestPriority = Priority[i];
+                        maxIndex = i;
+                    }
+                }
+
+                if (maxIndex == -1){
+                    cout << "no driver was found for you!" << endl;
+                }
+
+                else{
+                    if(this->accepted(maxIndex ,price , distance) == true)
+                    {
+                        
+                        this->successId = 1;
+                        //cout << successId;
+                        passenger[targetId].updateBalance(-price);
+
+                        drivers[maxIndex].income += price;
+
+                        cout << drivers[maxIndex].firstName << " "<< drivers[maxIndex].lastName << " accepted this request" << endl;
+                        cout << "driver will be there in "  << this->calculateDistance(this->startX , this->startY , 
+                        drivers[maxIndex].currentLocationX , drivers[maxIndex].currentLocationY) / drivers[maxIndex].averageSpeed << " minutes!!" << endl;
+                        cout << "you will be at your destination in " << distance / drivers[maxIndex].averageSpeed << " minutes!!" << endl;
+                        transactions[trans_num].set(drivers[maxIndex].id, passenger[targetId].id, ((1 - settlementR) * price), drivers[maxIndex].bankId);
+                        break;
+                    }
+
+                    Priority[maxIndex] = -10000;
+                    lowestPriority = -10000;
+                } 
+            }
+                if (successId == 0)
+                {
+                        cout << "no driver accepted your request!" << endl; 
+                }
+            }         
+        }      
+    }
+    int getdriversid(){
+        return drivers[maxIndex].id;
+    }
+    int getdriverstartx(){
+        return drivers[maxIndex].currentLocationX;
+    }
+    int getdriverstarty(){
+        return drivers[maxIndex].currentLocationY;
+    }
+    int getprice(){
+        return drivers[maxIndex].balance;
+    }
+    int getsuccessid(){
+        return successId;
+    }
+
+}requests[1000];
+
+
+void getPassengerInfo(){
+    for (int i = 0; i < pass_num; i++)
+    {
+        passenger[i].displayPassengerInfo();
+        cout <<endl;
+    }  
+}
+void getdriverInfo(){
+    for (int i = 0; i < driver_num; i++)
+    {
+        drivers[i].displayDriverInfo();
+        cout << endl;
+    }  
+}
+void getrequestInfo(){
+    for (int i = 0; i < req_num; i++)
+    {
+        requests[i].displayReqinfo();
+        // cout << endl;
+    }
+    
+}
+
+int searchTrips(int tripId){
+    for (int i = 0; i < 999; i++)
+    {
+        if (requests[i].getId() == tripId)
+        {
+            return i;
+        }   
+    }
+    return -1;
+}
+int separatorX(string s , int commaL){
+    int output = 0;
+   
+    for (int i = commaL -1 ; i >= 0; i--)
+    {
+        output += (int(s[i]) - 48) * pow(10 , commaL-1-i);
+    }
+    // cout<< endl;
+    return output;
+}
+int separatorY(string s , int commaL){
+    int output = 0;
+    for (int i = s.length() - 1; i > commaL; i--)
+    {
+        output += (int(s[i]) - 48) * pow(10 , s.length() -i -1);
+    }
+    // cout<< endl;
+    return output;
+}
+int separatorHour(string s){
+    int output = 0;
+    for (int i = 0; i < 2; i++)
+    {
+        output += (int(s[i]) - 48) * pow(10 , 1 - i ) ;
+    }
+    // cout << endl;
+    return output;
+}
+int separatorMin(string s){
+    int output = 0;
+    for (int i = 4; i >2; i--)
+    {
+        output += (int(s[i]) - 48) * pow(10 , 4-i ) ;
+    }
+    // cout << endl;
+    return output;
+}
+int commaFinder(string s){
+    for (int i = 0; i < s.length(); i++)
+    {
+        if (s[i] == ',')
+        {
+            return i;
+        }   
+    }
+    return -1;
+}
+
+
+
+int main() {
+
+    cout << "enter busyHours Rate , Baserate  , eco rate  , vip rate , ehang rate , quadcopter rate ,  ehangb rate , skycrane rate , stratofortress rate: " << endl;
+    cin >>busyHoursRate >> baseRate  >> ecoR  >> vipR >> ehangR >> quadcopterR >>  ehangbR >> skycraneR >> stratofortressR;
+
+    cout << "overWeight rate , needWorker rate, insurance rate , needStop rate , hurry rate : "<< endl;
+    cin >> overWeightR >> needWorkerR >> insuranceR >>needStopR >> hurryR;
+
+    cout << "enter driver points rate and distance rate: "<< endl;
+    cin >> pointsR >> distR;
+    cout << "enter settlement fee percentage: " << endl;
+    cin >> settlementR;
+
+    getline(cin , order);
+    while (order != "end first phase")
+    {
+        if (order == "register passenger")
+        {
+
+            cin >> firstName >> lastName >> phone >> passengerbalance;
+
+            passenger[pass_num].initializePassenger(firstName , lastName ,phone , passengerbalance);
+            pass_num ++;
+
+            getPassengerInfo();
+            cout << "passenger successfully added!" << endl;
+        }
+
+        else if (order == "register driver")
+        {
+            cin >> firstName >> lastName >> phone >> vehicleTag >> vehicleColor >> driverbalance >> serviceType
+            >> tmplocation >> bankId >> averageSpeed >>minLength >> maxLength >> minTime >> maxTime >> minIncome >>maxIncome;
+
+            locationC = commaFinder(tmplocation);
+            tmpstartX = separatorX(tmplocation , locationC);
+            tmpstartY = separatorY(tmplocation ,locationC);
+
+            drivers[driver_num].initializeDriver(firstName , lastName ,phone , vehicleTag , vehicleColor ,driverbalance ,
+            serviceType ,tmpstartX, tmpstartY , bankId , averageSpeed , minLength, maxLength , minTime , maxTime , 
+            minIncome , maxIncome);
+            driver_num++;
+            getdriverInfo();
+            cout << "successfully added!!" << endl;
+        }
+        
+        else if (order == "update") {
+            cin >> id >> newBalance;
+            targetId = search(id);
+
+            if (id >= 1000 && id < 10000) {
+
+                passenger[targetId].updateBalanceSpecial(newBalance);
+                cout << "Updated balance for person with ID " << id << " is " << newBalance << endl;
+                getPassengerInfo();
+                
+            } else {
+                cout << "Invalid person ID." << endl;
+            }
+        }
+
+        else if(order == "request")
+        {                                                                                                          
+            cin >> temptime >> tempid >> locationStart >> locationDest >> tmptype  ;
+            locationC = commaFinder(locationStart);
+            tmpstartX = separatorX(locationStart , locationC);
+            tmpstartY = separatorY(locationStart ,locationC);
+            tmpdestX = separatorX(locationDest , locationC);
+            tmpdestY = separatorY(locationDest , locationC);
+            tmphour = separatorHour(temptime);
+            tmpminute = separatorMin(temptime);
+            //options start from here
+            cout << "enter trip options: ";
+            cin >> overWeight >> needWorker >> insurance >>needStop;
+            if (overWeight == 1)
+            {
+                cin >> Weight;
+
+                if (Weight > 50)
+                {
+                    cout << "its overweight!" << endl;
+                }
+            }
+
+            if (needWorker == 1)
+            {
+                cout << "this trip needs a worker!"<< endl;
+            }
+
+            if (insurance == 1)
+            {
+                cin >> shipmentValue;
+                addvalue = shipmentValue * 0.02;
+                cout << addvalue << " will be added to this trips cost!"<< endl;
+            }
+
+            //needstop option
+            if (needStop == 1)
+            {
+                cin >> stopMins;
+                cout << "this passenger needs to stop for "<< stopMins << " minutes!" << endl;
+            }
+
+            //intializing travel requests
+            if (tempid >= 1000 && tempid < 10000) {
+                requests[req_num].InitializeTravel(tmphour,tmpminute , tempid , tmpstartX , tmpstartY
+                 , tmpdestX,tmpdestY , tmptype,Weight, overWeight, addvalue , insurance , needWorker, stopMins);
+                req_num++;
+                getrequestInfo();
+            } 
+            else {
+                cout << "Invalid person ID." << endl;
+            }
+
+        }
+
+        // else if (order == "newdestination") {
+        //     cin >> travelID >> newdest;
+        //     int index = searchTrips(travelID);
+        //     locationC = commaFinder(newdest);
+        //     tmpdestX = separatorX(newdest , locationC);
+        //     tmpdestY = separatorY(newdest ,locationC);
+
+        //     if (index != -1) {
+        //         // Update destination if the trip is found
+        //         requests[index].updateDestination(tmpdestX, tmpdestY);
+        //         cout << "Destination updated for trip " << travelID << endl;
+        //         //cout << startX << " " << startY << " " << destX << " " << destY;
+        //     } else {
+        //         cout << "Trip ID " << travelID << " not found." << endl;
+        //     }
+        // }
+        else 
+        {
+            cout << endl;
+        }
+        getline(cin , order);   
+    }
+
+    int currentmin , currenthour;
+        for (int i = 0; i < (24 * 60); i++)
+        {
+            currentmin = i % 60;
+            currenthour = i / 60;
+            for (int j = 0; j < req_num; j++)
+            {
+                if (requests[j].checkTime(currenthour , currentmin))
+                {
+                    requests[j].HandleReq();
+                    transactions[trans_num++].set_time(currenthour, currentmin);
+                }
+            }  
+        }
+
+
+    while (order != "exit")
+    {
+        getline(cin , order);  
+        if (order == "settlement with all drivers")
+        {
+            for (int i = 0; i < driver_num; i++)
+            {
+                drivers[i].settlement();
+            }
+        }
+        if(order == "settlement only with"){
+            cin >> id;
+            targetId = search_d(id);
+            drivers[targetId].settlement();
+        }
+        if(order == "save log transaction"){
+
+            ofstream MyFile("transactions.txt");
+
+
+            for (int i = 0; i <trans_num; i++)
+            {
+                //transactions[i].getinfo();
+                MyFile << bankId << " " << transactions[i].getAmount() << " " << transactions[i].getId_d() 
+                << " " << transactions[i].getId_p() << " " << transactions[i].getHour() << ":" << transactions[i].getMin() << endl;
+                
+            }
+
+            MyFile.close();
+            cout << "done"<< endl;
+        }
+
+        if(order == "save log trips"){
+
+            ofstream MyFile("trips.txt");
+
+            for (int i = 0; i <req_num; i++)
+            {
+                if (requests[i].getsuccessid() == 1)
+                {
+                    MyFile << requests[i].getId() << " " << requests[i].gethour() << ":" << requests[i].getminute() <<
+                    " "<< requests[i].getpassengerid()<< " " <<requests[i].getdriversid() << " " << requests[i].getstartx() << "," << requests[i].getstarty() << " "
+                    << requests[i].getdestx() << "," <<requests[i].getdesty() << " "<< requests[i].getdriverstartx() << "," << requests[i].getdriverstarty()
+                    << " " << requests[i].gettype()  << " " << requests[i].getprice() << endl;
+                    
+                }
+            }
+
+            MyFile.close();
+            cout << "done"<< endl;
+        }
+        if (order == "passenger and drivers info")
+        {
+            for (int i = 0; i < driver_num; i++)
+            {
+                drivers[i].settlement();
+            }
+
+            ofstream MyFile("info.txt");
+            for (int i = 0; i < pass_num; i++)
+            {
+                MyFile << "passengers: "<< endl;
+                MyFile << passenger[i].getfirst() << "," <<passenger[i].getlast() << "," <<passenger[i].getphone() << "," << passenger[i].getbalance() <<endl;
+
+            }
+            for (int i = 0; i < driver_num; i++)
+            {
+                MyFile << "drivers: "<< endl;
+                MyFile << drivers[i].getfirst() << "," <<drivers[i].getlast() << "," <<drivers[i].getphone() << "," << drivers[i].getdbalance() 
+                <<" " << drivers[i].gettag() << " " << drivers[i].getcolor() << " " << drivers[i].gettype() << " " << drivers[i].getlocx()
+                <<"," << drivers[i].getlocy() << " " << drivers[i].getbank() << " " << drivers[i].getspeed() << " "<<drivers[i].getminlen()
+                <<" " << drivers[i].getmaxlen() << " " << drivers[i].getmint()<<" "<< drivers[i].getmaxt() << " " << drivers[i].getmini()
+                << " " << drivers[i].getmaxi() <<endl;
+
+            }
+        MyFile.close(); 
+        cout<< "done"<< endl;
+        }
+        if (order == "load log transactions")
+        {
+            string myText;
+            ifstream ReadFile("transactions.txt");
+            while (getline(ReadFile, myText)) {
+                cout << myText;
+            }
+            ReadFile.close();
+        }
+
+        if (order == "load log trips")
+        {
+            string myText;
+            ifstream ReadFile("trips.txt");
+            while (getline(ReadFile, myText)) {
+                cout << myText;
+            }
+            ReadFile.close();
+        }
+        
+    }
+
+    return 0;
+}
+
