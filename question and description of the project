@@ -1,0 +1,204 @@
+Uber Air 
+
+The use of objectivism (OOP) and related topics (... and polymorphism, inheritance) is required in the project!
+The use of vector and similar libraries is not allowed.
+
+Application services are generally divided into two categories:
+
+Passenger transportation:  
+Ordinary UAV (ECO) 
+Stylish Helicopter (VIP) 
+single seater drone (ehang)
+Load handling:
+quadcopter
+single seater drone (ehangb)
+cargo helicopter (skycrane)
+heavy aircraft (stratofortress)
+
+The most basic requirement of the program is to register, edit, delete and read passenger and driver information.
+(Imagine that all vehicles have a driver. Whether remotely or in the vehicle itself!) For drivers, in addition to the basic information
+(ID, first and last name, phone number, vehicle license plate, vehicle color, inventory) and the exact type of service provided (which we said above)
+and the current location (x,y) and card/account number, the driver's habit of driving the vehicle (which is constant at all times and in kilometers per minute) 
+is received. Also, at the time of driver registration, we record information about the driver's preferences, such as: minimum and maximum distance, travel time,
+and minimum travel cost, so that when allocating a trip to them, the probability of accepting the trip is calculated based on these factors.
+
+
+register driver {first name} {last name} {phone} {vehicle tag} {vehicle color} {driver balance} {service type} {current location}{bank id} {average speed}
+{min length} {max length} {min time} {max time} {min income} {max income}
+
+register driver ali hoseini 09121234567 33b457ir55 black 0 vip 400,300 6037991912345678 100 10 100 0 200 10000 10000000
+
+
+
+register passenger {first name} {last name} {phone} {balance}
+
+register passenger nima abedi 09121234567 5000000
+
+The user/admin of the program must be able to increase the balance of the passenger (which is considered a special mode of updating the passenger)
+
+update {person id} {new balance}
+
+update 1001 65000
+An identification code (id) is assigned to each driver or passenger during their registration. This number is unique and starts from 1000 in order of registration.
+
+-------------------------------------------------------------------------------------------------------------------------------
+ambassador request 
+
+
+
+The user/admin registers the travel request. The information he enters for the travel request is:
+
+Application execution time
+ID (id) of the passenger
+Origin and destination location
+Requested service type
+Specific options related to the type of service, if any (explained below.)
+request {execution time} {id} {start location} {destination location} {type} {...options...}
+request 00:28 1000 0,0 300,400 vip {...options...}
+After the travel registration request, the travel price is calculated according to the type of service requested and specific invoices, 
+the distance between the origin and destination, and the time of the service request (busy hours are 17:00 to 21:00).
+
+Be careful, you must manage the clock in the program with a counter. Take the weight of each of the factors mentioned in the price calculation at the beginning of the program from the user.
+
+Pay attention, if the customer's balance is lower than the calculated cost for the trip, an insufficient balance error will be printed on the console. 
+Each if there is 1 number, then special options for cargo transportation service:
+
+The extra weight of the cargo for all sub-services is more than 50 kg. (a number in kilograms that represents the total weight of the load)
+Request for workers to help move cargo for cargo helicopter and heavy aircraft services
+Application for cargo insurance (by taking the value of the shipment and adding two percent of the cargo value to the travel cost, two percent of the cargo value)
+Example:
+
+{over weight} {weight} {need worker} {insurance} {The value of the shipment}
+1 950 1 1 550000
+0 1 0
+
+Special options for passenger transfer service:
+
+Stops in the journey (numerically in minutes)
+
+{need stop} {time min}
+1 20
+0
+
+Change destination:
+The passenger can change his destination during the trip. In this way, the price is calculated according to the current location of the driver as the old destination and
+the cost of the previous trip is deducted. Then the current location of the driver is considered as the origin of the new trip and the price of the trip is calculated.
+In this section, it is not necessary to pay attention to the driver's taste. The only thing that is checked is that the driver does not have any reservation.
+
+newdestination {trip id} {location}
+newdestination 1005 52,35
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Ambassador selection
+
+
+After the trip request, search to find the right driver, in order of priority of the drivers, which priority is based on 2 factors:
+
+Score
+Distance from the driver to the origin
+
+it will be counted. The weight of these factors will be given as input price calculation. The presence of both factors in prioritization is required, except for the
+"I'm in a hurry" mode. The trip is sent to the intended driver to check if the driver accepts or not. The probability of the driver accepting or not accepting the trip is first
+calculated according to the preferences of the driver that we recorded when registering the driver, and then if the probability is higher than 70%, the driver will accept the trip.
+Otherwise, it will be rejected and the travel request will be sent to the driver with the next priority.
+
+If no driver accepts (assume in the worst case the request is sent to all drivers), the message "Unfortunately, no driver accepted this trip" is output.
+Obviously, after accepting a trip by a driver, information such as the driver's information and his vehicle, the driver's arrival time at the origin and the passenger's 
+arrival time at the destination along with the cost of the trip should be printed to inform the passenger. You must also assign an ID for the trip, which starts from 1000.
+
+trip {trip id} started. {driver name} {vehicle} {vehicle tag} will reach your location at {time} and You will arrive at your destination at {time}
+
+trip 1001 started. ali khatar vip 33b457ir55 will reach your location at  22:30 and You will arrive at your destination at 22:35
+
+After the end of the trip, the cost of the trip will be deducted from the passenger's balance. Also, a point is taken as the passenger's point to the driver with the command below and the driver's point is updated based on it.
+
+register point {trip id} {an integer number [1, 5])
+
+register point 1002 4
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+I'm in a hurry!!!!!
+
+
+In 2016, a patient needed a life-saving ECMO machine to stay alive, which was not available at a hospital in the small town of Bodø in central Norway, according to AFP.
+ECMO is an advanced device that acts like a rescue bridge for patients who have heart and lung problems, and as a temporary substitute for the blood circulation and breathing system,
+it takes over the task of oxygenating and purifying the blood. This device can be used even for patients who need a heart and lung transplant and a heart has not yet been found for them,
+until the time of the transplant.
+
+Time was very limited. That's why the hospital authorities requested help from the authorities to deliver this vital device from the nearest city. 
+It took at least 10 hours to deliver this device by land from the nearest city. They started to check all the ways and calculate the time for each device to reach the patient in any case. 
+They decided to request the air force to send them the fastest possible means. The Ministry of Defense, after checking which pilot can cover the 450 km route in less than half an hour and 
+ignoring other factors, chose an F16 fighter for this task. According to the officials of the Norwegian army, normally the fighters of this country cover this distance of 450 kilometers in
+35 minutes, but due to emergency conditions, the pilot delivered the cargo at a faster speed and in 25 minutes, and the patient's life was saved.
+I'm in a hurry option: if you choose this option, the search to find the right driver is regardless of the type of service provided and the rating, and the priority criterion is only the time
+the passenger arrives at the destination. In this case, all devices, including those that are traveling, are also checked. For example, a heavy plane is carrying cargo. It completes its journey
+in 15 seconds and reaches the passenger 3 seconds later and can take the passenger to the destination 10 seconds later. This aircraft has a higher priority than a normal drone with a high rating,
+which is 10 seconds away from the passenger and can take the passenger from the origin to the destination in 20 seconds. (The total time of the plane is 28 and the total time of the drone is 30)
+This option is only for the transfer of passengers
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Input coefficients
+
+All required coefficients are given in one line and in order of input.
+
+Busy time: a number greater than 1. For example, when it is 1.2, the final price will increase by 20%.
+Distance: an integer that represents the price per kilometer for a passenger from the origin to the destination. For example, 750
+The price factor of each service: the base price calculated for each trip (before applying other options, only depending on the location) is multiplied by the service factor.
+For example, eco is equal to 1, vip is equal to 5, single-passenger drone is equal to 2. Also for quadcopter cargo services equal to 1, ehang equal to 2, skycrane equal to 10, stratofortress equal to 100
+For each of the travel options, a coefficient is given to increase the price. Their order is the same as the project description. 1-Extra weight 2-Worker's request 3-Insurance request 
+{multiplied by 2% of the load value} 4-Stop on the trip {price per minute of stop} 5-I'm in a hurry
+Impact of points: It is the number by which the driver's points are multiplied
+The impact of the driver's distance to the origin: it is a number that will represent a negative score for every 1 km of distance.
+Example 
+Same as above:
+1.20 750 1 5 2 1 2 10 100 1.02 1.10 1 900 5 100 1
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Account settlement and backup
+
+The admin should be able to settle with a specific driver or with all drivers at any time.
+
+settlement with all drivers
+Settlement only with 1001
+Plain text
+As you know, the cost of each trip is not fully credited to the driver's account and a percentage is deducted as a travel fee. (It is 20% in Snap and 15% in Tapsi.) Get this coefficient from the input user at the beginning.
+
+Back up 
+Save the transactions (destination account number and transaction amount and driver and passenger ID, transaction date and time). to be saved in a file by receiving the following command. Also, a history of trips is also saved in another file.
+
+save log transactions
+save log trips
+Plain text
+The admin can see all the transactions done from the beginning until now with the date filter and also have the mentioned feature for a specific driver (with the driver's ID).
+
+print {person id} trips
+
+print 1001 trips 
+Plain text
+Read the backup 
+The program must be able to read the files it has saved and reach the mentioned state.
+
+load log transactions
+load log trips
+Plain text
+Sample transaction file 
+6037991928534001 200000 1001 1002 23:59
+6219991928534001 1500000 1003 1002 00:10
+6037991928534001 5000 1001 1002 00:10
+{person id} {new balance}
+1002 250000
+Plain text
+The update of passengers' balance is saved as the last line.
+
+Sample travel file 
+This file contains a list of drivers, passengers and trips made up to this moment. Pay attention that the location and inventory of drivers must be updated, but the same specifications must be recorded in the trip history section
+
+#drivers
+{first name},{last name},{phone},{vehicle tag},{vehicle color},{driver balance},{service type},{current location},{bank id},{average speed},{min length},{max length},{min time},{max time},{min income},{max income}
+ali,hoseini,09121234567,33b457ir55,black,0,vip,400,300,6037991912345678,100,10,100,0,200,10000,10000000
+...
+#passengers
+{first name},{last name},{phone},{balance}
+nima,abedi,09121234567,5000000
+sina,rezatabar,09301231234,200000
+...
+#trips
+{trip id} {execution time} {passenger id} {driver id} {start location} {destination location} {driver location} {type} {...options...} {price}
+1001 23:54 1001 1002 50,50 100,100 45,48 vip 1 5 200000
+...
